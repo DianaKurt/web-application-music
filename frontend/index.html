@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Music Store</title>
+  <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+
+  <div class="container">
+    <h1>Music Store</h1>
+
+    <!--Toolbar -->
+    <div class="toolbar">
+
+      <div class="field">
+        <label for="lang">Language</label>
+        <select id="lang">
+          <option value="en-US">English (US)</option>
+          <option value="de-DE">Deutsch</option>
+        </select>
+      </div>
+
+      <div class="field field--small">
+        <label for="seed">Seed</label>
+        <input id="seed" type="number" value="42" />
+      </div>
+
+      <div class="field field--small">
+        <label for="likes">Likes avg</label>
+        <input id="likes" type="number" step="0.1" value="3.7" />
+      </div>
+
+      <!-- опционально, можно убрать -->
+      <div class="actions">
+        <button id="random-seed" type="button">Random seed</button>
+      </div>
+
+    </div>
+
+    <!--Table View-->
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th></th> <!-- expand arrow -->
+            <th>#</th>
+            <th>Song</th>
+            <th>Artist</th>
+            <th>Album</th>
+            <th>Genre</th>
+            <th>Likes</th>
+          </tr>
+        </thead>
+
+        <tbody id="songs-table">
+        
+        </tbody>
+      </table>
+    </div>
+
+    <!--pagination placeholder -->
+    <div class="pagination">
+      <div class="left">
+        <button id="prev-page" type="button">◀ Prev</button>
+      </div>
+    
+      <div class="right">
+        <span class="badge" id="page-badge">Page 1</span>
+        <button id="next-page" type="button">Next ▶</button>
+      </div>
+    </div>
+    
+
+    <!-- ===== Gallery View placeholder (later) ===== -->
+    <!--
+    <div class="gallery">
+      <div class="card">
+        <div class="cover"></div>
+        <div class="content">
+          <p class="title">Song title</p>
+          <p class="meta">Artist · Album</p>
+        </div>
+      </div>
+    </div>
+    -->
+
+  </div>
+
+  <!-- JS -->
+  <script src="app.js"></script>
+</body>
+</html>
