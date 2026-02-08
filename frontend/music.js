@@ -1,0 +1,167 @@
+let playing = false;
+let current = { parts: [], synthLead: null, synthBass: null, drum: null };
+
+export function isPlaying() {
+  return playing;
+}
+
+export async function playSong(audioSeed) {
+  if (!window.Tone) throw new Error("Tone.js not loaded");
+
+  const seedrandomFn = window.seedrandom || (window.Math && window.Math.seedrandom);
+  if (!seedrandomFn) throw new Error("seedrandom not loaded");
+
+  if (!audioSeed) throw new Error("audioSeed is empty");
+
+  if (playing) stopSong();
+
+  await Tone.start();
+
+  const rng = seedrandomFn(String(audioSeed));
+
+  const bpm = 85 + Math.floor(rng() * 66);
+  Tone.Transport.bpm.value = bpm;
+  Tone.Transport.timeSignature = [4, 4];
+  // --- instruments ---
+  const synthLead = new Tone.PolySynth(Tone.Synth, {
+    volume: -10,
+    oscillator: { type: rng() < 0.5 ? "triangle" : "sine" },
+    envelope: { attack: 0.01, decay: 0.12, sustain: 0.2, release: 0.25 },
+  }).toDestination();
+
+  const synthBass = new Tone.MonoSynth({
+    volume: -8,
+    oscillator: { type: "square" },
+    envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.2 },
+  }).toDestination();
+
+  const hat = new Tone.NoiseSynth({
+    volume: -18,
+    noise: { type: "white" },
+    envelope: { attack: 0.001, decay: 0.05, sustain: 0 },
+  }).toDestination();
+
+  const kick = new Tone.MembraneSynth({
+    volume: -6,
+    pitchDecay: 0.02,
+    octaves: 6,
+    envelope: { attack: 0.001, decay: 0.18, sustain: 0.01, release: 0.1 },
+  }).toDestination();
+
+  // --- scale/chords (simple but musical) ---
+  const roots = ["C", "D", "E", "F", "G", "A", "B"];
+  const root = roots[Math.floor(rng() * roots.length)];
+  const minor = rng() < 0.55;
+
+  const rootMidiMap = { C: 60, D: 62, E: 64, F: 65, G: 67, A: 69, B: 71 };
+  const rootMidi = rootMidiMap[root] ?? 60;
+
+  const intervals = minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11];
+  const scaleMidi = intervals.map(i => rootMidi + i);
+
+  const progMajor = [[0,4,7],[7,11,14],[9,12,16],[5,9,12]];
+  const progMinor = [[0,3,7],[8,12,15],[3,7,10],[10,14,17]];
+  const chordProg = (minor ? progMinor : progMajor).map(ch => ch.map(x => rootMidi + x));
+
+  const barsPerLoop = 2;
+  const totalBars = barsPerLoop;
+
+  function midiToNote(m) {
+    return Tone.Frequency(m, "midi").toNote();
+  }
+
+  function pickLeadNote() {
+    if (rng() < 0.25) return null;
+    const octaveUp = rng() < 0.2 ? 12 : 0;
+    const m = scaleMidi[Math.floor(rng() * scaleMidi.length)] + octaveUp;
+    return midiToNote(m);
+  }
+
+  function chordForBar(bar) {
+    return chordProg[bar % chordProg.length].map(midiToNote);
+  }
+
+  const parts = [];
+
+  // chords (1 bar)
+  const chordPart = new Tone.Part((time, chord) => {
+    synthLead.triggerAttackRelease(chord, "1n", time);
+  }, []);
+  for (let bar = 0; bar < totalBars; bar++) {
+    chordPart.add(`${bar}:0:0`, chordForBar(bar));
+  }
+  chordPart.loop = true;
+  chordPart.loopEnd = `${barsPerLoop}m`;
+  parts.push(chordPart);
+
+  // bass (1 & 3)
+  const bassPart = new Tone.Part((time, note) => {
+    synthBass.triggerAttackRelease(note, "8n", time);
+  }, []);
+  for (let bar = 0; bar < totalBars; bar++) {
+    const rootNote = chordForBar(bar)[0];
+    bassPart.add(`${bar}:0:0`, rootNote);
+    bassPart.add(`${bar}:2:0`, rootNote);
+  }
+  bassPart.loop = true;
+  bassPart.loopEnd = `${barsPerLoop}m`;
+  parts.push(bassPart);
+
+  // lead (8th)
+  const leadPart = new Tone.Part((time, note) => {
+    if (!note) return;
+    synthLead.triggerAttackRelease(note, "8n", time);
+  }, []);
+  for (let bar = 0; bar < totalBars; bar++) {
+    for (let beat = 0; beat < 4; beat++) {
+      leadPart.add(`${bar}:${beat}:0`, pickLeadNote());
+      leadPart.add(`${bar}:${beat}:2`, pickLeadNote());
+    }
+  }
+  leadPart.loop = true;
+  leadPart.loopEnd = `${barsPerLoop}m`;
+  parts.push(leadPart);
+
+  // drums
+  const drumPart = new Tone.Part((time, type) => {
+    if (type === "kick") kick.triggerAttackRelease("C1", "8n", time);
+    if (type === "hat") hat.triggerAttackRelease("16n", time);
+  }, []);
+  for (let bar = 0; bar < totalBars; bar++) {
+    drumPart.add(`${bar}:0:0`, "kick");
+    drumPart.add(`${bar}:2:0`, "kick");
+    for (let beat = 0; beat < 4; beat++) drumPart.add(`${bar}:${beat}:2`, "hat");
+  }
+  drumPart.loop = true;
+  drumPart.loopEnd = `${barsPerLoop}m`;
+  parts.push(drumPart);
+
+  parts.forEach(p => p.start(0));
+  Tone.Transport.start("+0.05");
+
+  current = { parts, synthLead, synthBass, drum: { hat, kick } };
+  playing = true;
+
+  return { bpm, root, scale: minor ? "minor" : "major" };
+}
+
+export function stopSong() {
+  if (!window.Tone) return;
+
+  try {
+    Tone.Transport.stop();
+    Tone.Transport.cancel(0);
+  } catch {}
+
+  try {
+    current.parts?.forEach(p => { try { p.stop(); p.dispose(); } catch {} });
+  } catch {}
+
+  try { current.synthLead?.dispose(); } catch {}
+  try { current.synthBass?.dispose(); } catch {}
+  try { current.drum?.hat?.dispose(); } catch {}
+  try { current.drum?.kick?.dispose(); } catch {}
+
+  current = { parts: [], synthLead: null, synthBass: null, drum: null };
+  playing = false;
+}

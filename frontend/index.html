@@ -24,7 +24,7 @@
 
       <div class="field field--small">
         <label for="seed">Seed</label>
-        <input id="seed" type="number" value="42" />
+        <input id="seed" type="text" value="42" inputmode="numeric" />
       </div>
 
       <div class="field field--small">
@@ -32,7 +32,16 @@
         <input id="likes" type="number" step="0.1" value="3.7" />
       </div>
 
-      <!-- опционально, можно убрать -->
+      <div class="field field--small">
+        <label for="view">View</label>
+        <select id="view">
+          <option value="table">Table</option>
+          <option value="gallery">Gallery</option>
+        </select>
+      </div>
+      
+
+      <!-- seed -->
       <div class="actions">
         <button id="random-seed" type="button">Random seed</button>
       </div>
@@ -60,6 +69,11 @@
       </table>
     </div>
 
+    <div id="gallery" class="gallery" style="display:none;"></div>
+
+    <div id="sentinel" style="height: 1px;"></div>
+
+
     <!--pagination placeholder -->
     <div class="pagination">
       <div class="left">
@@ -71,24 +85,25 @@
         <button id="next-page" type="button">Next ▶</button>
       </div>
     </div>
-    
-
-    <!-- ===== Gallery View placeholder (later) ===== -->
-    <!--
-    <div class="gallery">
-      <div class="card">
-        <div class="cover"></div>
-        <div class="content">
-          <p class="title">Song title</p>
-          <p class="meta">Artist · Album</p>
-        </div>
+  </div>
+   <!-- modal -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close="1"></div>
+  
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-label="Song details">
+      <button class="modal-close" type="button" data-close="1" aria-label="Close">✕</button>
+  
+      <div class="modal-body" id="modal-body"> 
       </div>
     </div>
-    -->
-
   </div>
-
+  
   <!-- JS -->
-  <script src="app.js"></script>
+  <script src="https://unpkg.com/tone/build/Tone.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js"></script>
+  
+  <script type="module" src="app.js"></script>
+  
+
 </body>
 </html>

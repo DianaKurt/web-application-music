@@ -1,5 +1,3 @@
-//обложка (canvas / svg)
-
-export function generateCover({ title, artist, seed }) {
-  return `/cover/${seed}.png`;
+export function makeCoverUrl({ songSeed, title, artist }) {
+  return `/api/cover?seed=${encodeURIComponent(songSeed)}&title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`;
 }

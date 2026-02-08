@@ -1,6 +1,3 @@
-//combineSeed()
-
-
-export function combineSeed(seed, page, index) {
-  return `${seed}-${page}-${index}`;
+export function combineSeed(userSeed, page, index) {
+  return `${userSeed}::${page}::${index}`;
 }

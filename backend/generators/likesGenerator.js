@@ -1,8 +1,5 @@
-//likes (отдельный RNG)
-
-
-
-export function generateLikes(avg, rng) {
-  const base = Math.floor(avg);
-  return base + (rng() < avg - base ? 1 : 0);
+export function generateLikes({ avgLikes, rng }) {
+  const base = Math.floor(avgLikes);
+  const frac = avgLikes - base;
+  return base + (rng() < frac ? 1 : 0);
 }

@@ -1,5 +1,3 @@
-//музыка (Tone.js / MIDI)
-
-export function generateAudio(seed) {
-  return `/audio/${seed}.mp3`;
+export function makeAudioSeed(songSeed) {
+  return `${songSeed}::audio`;
 }
