@@ -15,7 +15,7 @@ export function appendGalleryBatch(galleryEl, songs, onOpen) {
 
     card.innerHTML = `
       <div class="cover">
-        <img alt="cover" src="${song.coverUrl}" />
+        <img alt="cover" src="${song.coverUrl}" style="width:100%;height:100%;object-fit:cover;" />
       </div>
       <div class="content">
         <p class="title">${escapeHtml(song.title)}</p>
@@ -36,7 +36,6 @@ export function createGalleryObserver(sentinelEl, onHitBottom) {
     if (state.viewMode !== "gallery") return;
     if (entries[0].isIntersecting) onHitBottom();
   });
-
   observer.observe(sentinelEl);
   return observer;
 }

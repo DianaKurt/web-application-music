@@ -1,4 +1,3 @@
-// backend/routes/songs.js
 import { Router } from "express";
 import { fakerEN_US, fakerDE } from "@faker-js/faker";
 
@@ -31,7 +30,6 @@ router.get("/songs", (req, res) => {
   const sizeRaw = Number(req.query.pageSize ?? 10);
   const pageSize = Number.isFinite(sizeRaw) ? Math.max(1, Math.min(50, Math.floor(sizeRaw))) : 10;
 
-
   const faker = fakerByLang[lang] ?? fakerEN_US;
   const songs = [];
 
@@ -39,7 +37,7 @@ router.get("/songs", (req, res) => {
     const index = (page - 1) * pageSize + i + 1;
     const songSeed = combineSeed(userSeed, page, index);
 
-    // core RNG
+    // core RNG (titles/artists/etc depend ONLY on core seed)
     const coreRng = makeRng(songSeed + "::core");
     faker.seed(rngToInt32(coreRng));
     const core = generateSong({ faker, rng: coreRng });
@@ -53,13 +51,7 @@ router.get("/songs", (req, res) => {
     faker.seed(rngToInt32(reviewRng));
     const review = generateReview({ faker, rng: reviewRng });
 
-    // coverUrl points to index.js route /api/cover
-    const coverUrl = makeCoverUrl({
-      songSeed,
-      title: core.title,
-      artist: core.artist,
-    });
-
+    const coverUrl = makeCoverUrl({ songSeed, title: core.title, artist: core.artist });
     const audioSeed = makeAudioSeed(songSeed);
 
     songs.push({

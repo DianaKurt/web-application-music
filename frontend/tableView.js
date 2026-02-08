@@ -1,7 +1,7 @@
 import { escapeHtml } from "./utils.js";
-import { state } from "./state.js";
+import { toggleRowDetails } from "./detailsModal.js";
 
-export function renderTable(tableBody, songs, onOpen) {
+export function renderTable(tableBody, songs) {
   tableBody.innerHTML = "";
 
   songs.forEach(song => {
@@ -9,7 +9,7 @@ export function renderTable(tableBody, songs, onOpen) {
     row.className = "row";
 
     row.innerHTML = `
-      <td></td>
+      <td class="cell-expand" title="Expand">▾</td>
       <td>${song.index}</td>
       <td>${escapeHtml(song.title)}</td>
       <td>${escapeHtml(song.artist)}</td>
@@ -18,12 +18,19 @@ export function renderTable(tableBody, songs, onOpen) {
       <td>${song.likes}</td>
     `;
 
-    row.addEventListener("click", () => onOpen(song));
+    row.querySelector(".cell-expand").addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleRowDetails(row, song);
+    });
+
+    // optional: click row to expand too
+    row.addEventListener("click", () => toggleRowDetails(row, song));
+
     tableBody.appendChild(row);
   });
 }
 
-export function updatePaginationUI(prevBtn, pageBadge) {
-  pageBadge.textContent = `Page ${state.page}`;
-  prevBtn.disabled = state.page <= 1;
+export function updatePaginationUI(prevBtn, pageBadge, page) {
+  pageBadge.textContent = `Page ${page}`;
+  prevBtn.disabled = page <= 1;
 }

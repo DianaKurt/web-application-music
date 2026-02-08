@@ -15,15 +15,14 @@ const __dirname = path.dirname(__filename);
 // static frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// songs API (в routes/songs.js)
+// api routes
 app.use("/api", songsRouter);
 
-// ===== cover API stays here =====
+// ===== cover route (svg) =====
 function clampText(s, max = 28) {
   const str = String(s ?? "");
   return str.length > max ? str.slice(0, max - 1) + "…" : str;
 }
-
 function svgEscape(s) {
   return String(s ?? "")
     .replaceAll("&", "&amp;")
@@ -68,6 +67,7 @@ app.get("/api/cover", (req, res) => {
   <rect width="512" height="512" rx="28" fill="url(#bg)"/>
   <circle cx="${cx}" cy="${cy}" r="${r1}" fill="rgba(255,255,255,0.35)" filter="url(#soft)"/>
   <circle cx="${512 - cx}" cy="${512 - cy}" r="${Math.floor(r1 * 0.75)}" fill="rgba(255,255,255,0.25)" filter="url(#soft)"/>
+
   <rect x="28" y="330" width="456" height="154" rx="18" fill="rgba(255,255,255,0.72)"/>
 
   <text x="52" y="382" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Arial, sans-serif"
@@ -87,8 +87,5 @@ app.get("/api/cover", (req, res) => {
   res.send(svg);
 });
 
-// listen once
-const PORT = 4000;
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-});
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));

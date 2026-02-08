@@ -1,20 +1,8 @@
-let playing = false;
-let current = { parts: [], nodes: [] };
-
-export function isPlaying() {
-  return playing;
-}
-
-export async function playSong(audioSeed, { previewSec = 12 } = {}) {
+export function buildSongGraph(audioSeed) {
   if (!window.Tone) throw new Error("Tone.js not loaded");
+
   const seedrandomFn = window.seedrandom || (window.Math && window.Math.seedrandom);
   if (!seedrandomFn) throw new Error("seedrandom not loaded");
-
-  if (playing) stopSong();
-
-  await Tone.start(); // must be from button click
-  Tone.Transport.stop();
-  Tone.Transport.cancel(0);
 
   const rng = seedrandomFn(String(audioSeed));
 
@@ -22,7 +10,6 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
   Tone.Transport.bpm.value = bpm;
   Tone.Transport.timeSignature = [4, 4];
 
-  // instruments
   const synthLead = new Tone.PolySynth(Tone.Synth, {
     volume: -10,
     oscillator: { type: rng() < 0.5 ? "triangle" : "sine" },
@@ -48,7 +35,7 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
     envelope: { attack: 0.001, decay: 0.18, sustain: 0.01, release: 0.1 },
   }).toDestination();
 
-  // scale + chord progression
+  // harmony
   const roots = ["C", "D", "E", "F", "G", "A", "B"];
   const root = roots[Math.floor(rng() * roots.length)];
   const minor = rng() < 0.55;
@@ -64,7 +51,6 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
   const chordProg = (minor ? progMinor : progMajor).map(ch => ch.map(x => rootMidi + x));
 
   const barsPerLoop = 2;
-
   const midiToNote = (m) => Tone.Frequency(m, "midi").toNote();
 
   function pickLeadNote() {
@@ -80,7 +66,6 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
 
   const parts = [];
 
-  // chords
   const chordPart = new Tone.Part((time, chord) => {
     synthLead.triggerAttackRelease(chord, "1n", time);
   }, []);
@@ -89,7 +74,6 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
   chordPart.loopEnd = `${barsPerLoop}m`;
   parts.push(chordPart);
 
-  // bass
   const bassPart = new Tone.Part((time, note) => {
     synthBass.triggerAttackRelease(note, "8n", time);
   }, []);
@@ -102,7 +86,6 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
   bassPart.loopEnd = `${barsPerLoop}m`;
   parts.push(bassPart);
 
-  // lead
   const leadPart = new Tone.Part((time, note) => {
     if (!note) return;
     synthLead.triggerAttackRelease(note, "8n", time);
@@ -117,7 +100,6 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
   leadPart.loopEnd = `${barsPerLoop}m`;
   parts.push(leadPart);
 
-  // drums
   const drumPart = new Tone.Part((time, type) => {
     if (type === "kick") kick.triggerAttackRelease("C1", "8n", time);
     if (type === "hat") hat.triggerAttackRelease("16n", time);
@@ -131,33 +113,5 @@ export async function playSong(audioSeed, { previewSec = 12 } = {}) {
   drumPart.loopEnd = `${barsPerLoop}m`;
   parts.push(drumPart);
 
-  parts.forEach(p => p.start(0));
-  Tone.Transport.start("+0.05");
-  playing = true;
-
-  // auto-stop preview
-  Tone.Transport.scheduleOnce(() => stopSong(), `+${previewSec}`);
-
-  current = { parts, nodes: [synthLead, synthBass, hat, kick] };
-  return { bpm };
-}
-
-export function stopSong() {
-  if (!window.Tone) return;
-
-  try {
-    Tone.Transport.stop();
-    Tone.Transport.cancel(0);
-  } catch {}
-
-  try {
-    current.parts?.forEach(p => { try { p.stop(); p.dispose(); } catch {} });
-  } catch {}
-
-  try {
-    current.nodes?.forEach(n => { try { n.dispose(); } catch {} });
-  } catch {}
-
-  current = { parts: [], nodes: [] };
-  playing = false;
+  return { bpm, parts };
 }

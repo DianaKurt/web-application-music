@@ -3,17 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <title>Music Store</title>
-  <link rel="stylesheet" href="style.css">
-
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-
   <div class="container">
     <h1>Music Store</h1>
 
-    <!--Toolbar -->
     <div class="toolbar">
-
       <div class="field">
         <label for="lang">Language</label>
         <select id="lang">
@@ -24,7 +20,7 @@
 
       <div class="field field--small">
         <label for="seed">Seed</label>
-        <input id="seed" type="text" value="42" inputmode="numeric" />
+        <input id="seed" type="text" value="42" />
       </div>
 
       <div class="field field--small">
@@ -39,71 +35,51 @@
           <option value="gallery">Gallery</option>
         </select>
       </div>
-      
 
-      <!-- seed -->
       <div class="actions">
         <button id="random-seed" type="button">Random seed</button>
+        <button id="export-zip" type="button">Export ZIP</button>
       </div>
-
     </div>
 
-    <!--Table View-->
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th></th> <!-- expand arrow -->
-            <th>#</th>
-            <th>Song</th>
-            <th>Artist</th>
-            <th>Album</th>
-            <th>Genre</th>
-            <th>Likes</th>
+            <th>#</th><th>Song</th><th>Artist</th><th>Album</th><th>Genre</th><th>Likes</th>
           </tr>
         </thead>
-
-        <tbody id="songs-table">
-        
-        </tbody>
+        <tbody id="songs-table"></tbody>
       </table>
     </div>
 
     <div id="gallery" class="gallery" style="display:none;"></div>
-
     <div id="sentinel" style="height: 1px;"></div>
 
-
-    <!--pagination placeholder -->
     <div class="pagination">
-      <div class="left">
-        <button id="prev-page" type="button">◀ Prev</button>
-      </div>
-    
-      <div class="right">
-        <span class="badge" id="page-badge">Page 1</span>
-        <button id="next-page" type="button">Next ▶</button>
-      </div>
+      <button id="prev-page" type="button">◀ Prev</button>
+      <span class="badge" id="page-badge">Page 1</span>
+      <button id="next-page" type="button">Next ▶</button>
     </div>
   </div>
-   <!-- modal -->
+
+  <!-- Modal -->
   <div id="modal" class="modal" aria-hidden="true">
     <div class="modal-backdrop" data-close="1"></div>
-  
-    <div class="modal-dialog" role="dialog" aria-modal="true" aria-label="Song details">
-      <button class="modal-close" type="button" data-close="1" aria-label="Close">✕</button>
-  
-      <div class="modal-body" id="modal-body"> 
-      </div>
+    <div class="modal-dialog" role="dialog" aria-modal="true">
+      <button class="modal-close" type="button" data-close="1">✕</button>
+      <div class="modal-body" id="modal-body"></div>
     </div>
   </div>
-  
-  <!-- JS -->
-  <script src="https://unpkg.com/tone/build/Tone.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js"></script>
-  
-  <script type="module" src="app.js"></script>
-  
+
+
+<!-- libs -->
+<script src="https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js"></script>
+<script src="https://unpkg.com/tone/build/Tone.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+
+<script type="module" src="app.js"></script>
+
 
 </body>
 </html>

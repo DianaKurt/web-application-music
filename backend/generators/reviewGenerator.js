@@ -8,11 +8,10 @@ export function generateReview({ faker, rng }) {
   ];
 
   const sentenceCount = 2 + Math.floor(rng() * 3); // 2..4
-  const picked = [];
-
+  const out = [];
   for (let i = 0; i < sentenceCount; i++) {
-    picked.push(templates[Math.floor(rng() * templates.length)]());
+    const fn = templates[Math.floor(rng() * templates.length)];
+    out.push(fn());
   }
-
-  return picked.join(" ");
+  return out.join(" ");
 }

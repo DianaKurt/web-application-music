@@ -2,33 +2,32 @@ import { fetchSongs } from "./api.js";
 import { state } from "./state.js";
 import { renderTable, updatePaginationUI } from "./tableView.js";
 import { resetGallery, appendGalleryBatch, createGalleryObserver } from "./galleryView.js";
-import { openDetails, closeDetails } from "./detailsModal.js";
+import { closeExpanded } from "./detailsModal.js";
 import { debounce, randomSeed64 } from "./utils.js";
-
-
+import { exportZip } from "./exportZip.js";
 
 // UI
 const langEl = document.getElementById("lang");
 const seedEl = document.getElementById("seed");
 const likesEl = document.getElementById("likes");
+const viewEl = document.getElementById("view");
 
 const tableBody = document.getElementById("songs-table");
 const prevBtn = document.getElementById("prev-page");
 const nextBtn = document.getElementById("next-page");
 const pageBadge = document.getElementById("page-badge");
 
-const viewEl = document.getElementById("view");
 const galleryEl = document.getElementById("gallery");
 const sentinelEl = document.getElementById("sentinel");
 
 const tableWrap = document.querySelector(".table-wrap");
 const paginationWrap = document.querySelector(".pagination");
+
 const randomSeedBtn = document.getElementById("random-seed");
-
-
-
+const exportZipBtn = document.getElementById("export-zip");
 
 let isLoadingGallery = false;
+let lastTableSongs = [];
 
 async function loadTable() {
   const data = await fetchSongs({
@@ -39,8 +38,10 @@ async function loadTable() {
     pageSize: state.pageSize,
   });
 
-  renderTable(tableBody, data.songs, openDetails);
-  updatePaginationUI(prevBtn, pageBadge);
+  lastTableSongs = data.songs;
+
+  renderTable(tableBody, data.songs);
+  updatePaginationUI(prevBtn, pageBadge, state.page);
 }
 
 async function loadGalleryNext() {
@@ -55,13 +56,13 @@ async function loadGalleryNext() {
     pageSize: state.pageSize,
   });
 
-  appendGalleryBatch(galleryEl, data.songs, openDetails);
+  appendGalleryBatch(galleryEl, data.songs, () => {});
   state.galleryPage += 1;
   isLoadingGallery = false;
 }
 
 function applyViewMode() {
-  closeDetails(); 
+  closeExpanded();
 
   if (state.viewMode === "table") {
     tableWrap.style.display = "";
@@ -79,9 +80,9 @@ function applyViewMode() {
     loadGalleryNext();
   }
 }
-function reload() {
-  closeDetails();
 
+function reload() {
+  closeExpanded();
   if (state.viewMode === "table") {
     loadTable();
   } else {
@@ -90,24 +91,26 @@ function reload() {
     loadGalleryNext();
   }
 }
-const debouncedReload = debounce(reload, 250)
+
+const debouncedReload = debounce(reload, 250);
 
 // events
 viewEl.addEventListener("change", () => {
   state.viewMode = viewEl.value;
+  state.page = 1;
   applyViewMode();
 });
 
 [langEl, seedEl, likesEl].forEach(el => {
   el.addEventListener("input", () => {
     state.page = 1;
-    debouncedReload(); 
+    debouncedReload();
   });
 });
 
 prevBtn.addEventListener("click", () => {
   if (state.page > 1) {
-    closeDetails();
+    closeExpanded();
     state.page -= 1;
     loadTable();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -115,27 +118,31 @@ prevBtn.addEventListener("click", () => {
 });
 
 nextBtn.addEventListener("click", () => {
-  closeDetails();
+  closeExpanded();
   state.page += 1;
   loadTable();
   window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 randomSeedBtn.addEventListener("click", () => {
-
-  closeDetails();
-//new seed
+  closeExpanded();
   seedEl.value = randomSeed64();
-//reset
   state.page = 1;
+  reload();
+});
 
-  if (state.viewMode === "table") {
-    loadTable();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  } else {
-    resetGallery(galleryEl);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    loadGalleryNext();
+exportZipBtn.addEventListener("click", async () => {
+  // export current table page (быстро и понятно)
+  try {
+    exportZipBtn.disabled = true;
+    exportZipBtn.textContent = "Exporting...";
+    await exportZip(lastTableSongs);
+  } catch (e) {
+    console.error(e);
+    alert("Export failed (see console).");
+  } finally {
+    exportZipBtn.disabled = false;
+    exportZipBtn.textContent = "Export ZIP";
   }
 });
 

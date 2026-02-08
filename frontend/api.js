@@ -11,5 +11,5 @@ export async function fetchSongs({ lang, seed, likes, page, pageSize }) {
 
   const res = await fetch(`${API_URL}?${params}`);
   if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json(); // { songs }
+  return res.json();
 }
